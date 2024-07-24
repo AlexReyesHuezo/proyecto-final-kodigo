@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+// ModelNotFoundException is a class that is thrown when a model is not found
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Exception;
 use App\Models\Task;
@@ -135,6 +137,60 @@ class TaskController extends Controller
 
             return response()->json([
                 'error' => 'Error al actualizar la tarea. Por favor, verifique los datos e intentelo de nuevo.',
+                'errorMessage' => $errorMessage,
+                'sqlState' => $sqlState,
+                'errorCode' => $errorCode
+            ], 500);
+        }
+        catch (Exception $error)
+        {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
+                'details' => $error->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark a task as completed.
+     * This method will be called when the user clicks the "Marcar como completada" button.
+     */
+    public function markAsCompleted(string $id)
+    {
+        try
+        {
+            $task = Task::findOrFail($id);
+
+            if ($task->user_id != Auth::id())
+            {
+                return response()->json([
+                    'error' => 'No tiene permisos para modificar esta tarea.'
+                ], 403);
+            }
+
+            // Alternate between true and false
+            $task->completed = !$task->completed;
+            $task->save();
+
+            return response()->json([
+                'message' => 'Tarea marcada como completada.'
+            ], 200);
+        }
+        // ModelNotFoundException is thrown when the task is not found
+        catch (ModelNotFoundException $error)
+        {
+            return response()->json([
+                'error' => 'Tarea no encontrada.'
+            ], 404);
+        }
+        catch (QueryException $error)
+        {
+            $errorMessage = $error->getMessage();
+            $sqlState = $error->errorInfo[0];
+            $errorCode = $error->errorInfo[1];
+
+            return response()->json([
+                'error' => 'Error al marcar la tarea como completada. Por favor, intentelo de nuevo.',
                 'errorMessage' => $errorMessage,
                 'sqlState' => $sqlState,
                 'errorCode' => $errorCode
