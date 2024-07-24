@@ -100,7 +100,53 @@ class TaskController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Validate the request data
+        try
+        {
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:100',
+                'description' => 'required|string',
+                'completed' => 'required|boolean'
+            ]);
+
+            $task = Task::findOrFail($id);
+
+            if ($task->user_id != Auth::id())
+            {
+                return response()->json([
+                    'error' => 'No tiene permisos para modificar esta tarea.'
+                ], 403);
+            }
+
+            $task->title = $validatedData['title'];
+            $task->description = $validatedData['description'];
+            $task->completed = $validatedData['completed'];
+            $task->save();
+
+            return response()->json([
+                'message' => 'Tarea actualizada correctamente.'
+            ], 200);
+        }
+        catch (QueryException $error)
+        {
+            $errorMessage = $error->getMessage();
+            $sqlState = $error->errorInfo[0];
+            $errorCode = $error->errorInfo[1];
+
+            return response()->json([
+                'error' => 'Error al actualizar la tarea. Por favor, verifique los datos e intentelo de nuevo.',
+                'errorMessage' => $errorMessage,
+                'sqlState' => $sqlState,
+                'errorCode' => $errorCode
+            ], 500);
+        }
+        catch (Exception $error)
+        {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
+                'details' => $error->getMessage()
+            ], 500);
+        }
     }
 
     /**
