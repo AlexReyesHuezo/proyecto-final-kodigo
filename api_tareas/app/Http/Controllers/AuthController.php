@@ -12,7 +12,7 @@ class AuthController extends Controller
 {
     public function register(Request $request){
         try{
-        // validar el request // POST
+        // Validate request for new user // POST
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -36,23 +36,23 @@ class AuthController extends Controller
 
     public function login(Request $request){
         try{
-            //valida los datos que necesitamos
+            // Validates data that we need
             $request->validate([
                 "email" => 'required|string|email',
                 "password" => 'required|string|min:8'
             ]);
-            //sacams del body de la peticion las credenciales
+            // we get the request from the body request
             $credencials = $request->only('email','password');
 
-            //si las credenciales NO son correctas enviamos el mensaje, terminamos ejecucion
+            // If credentials are not correct, we sent message and return
             if(!Auth::attempt($credencials)){
                 return response()->json(["message"=> 'usuario no autorizado'],401);
             }
 
-            //si las credenciales si son correctas vamos a obtener ese usuario de el request
+            // If credentials are Ok, we get that user from the request
             $user = $request->user();
 
-            //crear un token para el usuario y lo logeamos
+            // Creates a token for the user and then it logs the user in
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
@@ -69,7 +69,7 @@ class AuthController extends Controller
 
     public function logout(Request $request){
         try{
-            //es para desloguearse basicamente borra las credenciales
+            // To logout and will delete credentials
             $request->user()->tokens()->delete();
             return response()->json(['message'=> 'Te deslogueaste pa']);
 
