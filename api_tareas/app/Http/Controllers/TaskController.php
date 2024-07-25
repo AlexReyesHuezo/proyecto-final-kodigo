@@ -210,6 +210,52 @@ class TaskController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Find the task by its ID
+        try
+        {
+            $task = Task::findOrFail($id);
+
+            if ($task->user_id != Auth::id())
+            {
+                return response()->json([
+                    'error' => 'No tiene permisos para eliminar esta tarea.'
+                ], 403);
+            }
+
+            $task->delete();
+
+            return response()->json([
+                'message' => 'Tarea eliminada correctamente.'
+            ], 200);
+        }
+        // ModelNotFoundException is thrown when the task is not found
+        catch (ModelNotFoundException $error)
+        {
+            return response()->json([
+                'error' => 'Tarea no encontrada.'
+            ], 404);
+        }
+        // Catch the QueryException that could be thrown when trying to delete the task
+        catch (QueryException $error)
+        {
+            $errorMessage = $error->getMessage();
+            $sqlState = $error->errorInfo[0];
+            $errorCode = $error->errorInfo[1];
+
+            return response()->json([
+                'error' => 'Error al eliminar la tarea. Por favor, intentelo de nuevo.',
+                'errorMessage' => $errorMessage,
+                'sqlState' => $sqlState,
+                'errorCode' => $errorCode
+            ], 500);
+        }
+        // Catch any other exception that could be thrown
+        catch (Exception $error)
+        {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
+                'details' => $error->getMessage()
+            ], 500);
+        }
     }
 }
