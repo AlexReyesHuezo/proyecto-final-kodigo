@@ -12,7 +12,7 @@ class AuthController extends Controller
 {
     public function register(Request $request){
         try{
-        //validar el request
+        // validar el request // POST
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -27,7 +27,7 @@ class AuthController extends Controller
 
         return response()->json([
             'data' => $user,
-            'message' => 'usuario registado correcamente'
+            'message' => 'usuario registado correctamente'
         ],201);
             }catch(Exception $error){
                 return $error->getMessage();
@@ -36,7 +36,7 @@ class AuthController extends Controller
 
     public function login(Request $request){
         try{
-            //validaos los datos que necesitamos
+            //valida los datos que necesitamos
             $request->validate([
                 "email" => 'required|string|email',
                 "password" => 'required|string|min:8'
@@ -69,9 +69,9 @@ class AuthController extends Controller
 
     public function logout(Request $request){
         try{
-            //es para deslogearse basicamente borra las credenciales
+            //es para desloguearse basicamente borra las credenciales
             $request->user()->tokens()->delete();
-            return response()->json(['message'=> 'Te deslogeastes pa']);
+            return response()->json(['message'=> 'Te deslogueaste pa']);
 
         }catch(Exception $error){
             return $error->getMessage();
