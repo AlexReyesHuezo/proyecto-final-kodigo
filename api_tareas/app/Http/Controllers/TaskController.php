@@ -1,0 +1,261 @@
+<?php
+
+namespace App\Http\Controllers;
+
+// ModelNotFoundException is a class that is thrown when a model is not found
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Exception;
+use App\Models\Task;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class TaskController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $tasks = Task::where('user_id', Auth::id())->get();
+        // Return the tasks in JSON format
+        return response()->json($tasks);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        // Validate the request data
+        try
+        {
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:100',
+                'description' => 'required|string',
+                'completed' => 'required|boolean'
+            ]);
+
+            Task::create([
+                'title' => $validatedData['title'],
+                'description' => $validatedData['description'],
+                'completed' => $validatedData['completed'],
+                // Get the user ID from the authenticated user
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'message' => 'Tarea guardada correctamente.'
+            ], 201);
+        }
+        // Catch the QueryException that could be thrown when trying to save the task
+        catch (QueryException $error){
+            $errorMessage = $error->getMessage();
+            // Get the SQL state
+            $sqlState = $error->errorInfo[0];
+            // Get the error code
+            $errorCode = $error->errorInfo[1];
+
+            return response()->json([
+                'error' => 'Error al guardar la tarea. Por favor, verifique los datos e intentelo de nuevo.',
+                'errorMessage' => $errorMessage,
+                'sqlState' => $sqlState,
+                'errorCode' => $errorCode
+            ], 500);
+        }
+        // Catch any other exception that could be thrown
+        catch (Exception $error)
+        {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
+                'details' => $error->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        // Validate the request data
+        try
+        {
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:100',
+                'description' => 'required|string',
+                'completed' => 'required|boolean'
+            ]);
+
+            $task = Task::findOrFail($id);
+
+            if ($task->user_id != Auth::id())
+            {
+                return response()->json([
+                    'error' => 'No tiene permisos para modificar esta tarea.'
+                ], 403);
+            }
+
+            $task->title = $validatedData['title'];
+            $task->description = $validatedData['description'];
+            $task->completed = $validatedData['completed'];
+            $task->save();
+
+            return response()->json([
+                'message' => 'Tarea actualizada correctamente.'
+            ], 200);
+        }
+        catch (QueryException $error)
+        {
+            $errorMessage = $error->getMessage();
+            $sqlState = $error->errorInfo[0];
+            $errorCode = $error->errorInfo[1];
+
+            return response()->json([
+                'error' => 'Error al actualizar la tarea. Por favor, verifique los datos e intentelo de nuevo.',
+                'errorMessage' => $errorMessage,
+                'sqlState' => $sqlState,
+                'errorCode' => $errorCode
+            ], 500);
+        }
+        catch (Exception $error)
+        {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
+                'details' => $error->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark a task as completed.
+     * This method will be called when the user clicks the "Marcar como completada" button.
+     */
+    public function markAsCompleted(string $id)
+    {
+        try
+        {
+            $task = Task::findOrFail($id);
+
+            if ($task->user_id != Auth::id())
+            {
+                return response()->json([
+                    'error' => 'No tiene permisos para modificar esta tarea.'
+                ], 403);
+            }
+
+            // Alternate between true and false
+            $task->completed = !$task->completed;
+            $task->save();
+
+            return response()->json([
+                'message' => 'Tarea marcada como completada.'
+            ], 200);
+        }
+        // ModelNotFoundException is thrown when the task is not found
+        catch (ModelNotFoundException $error)
+        {
+            return response()->json([
+                'error' => 'Tarea no encontrada.'
+            ], 404);
+        }
+        catch (QueryException $error)
+        {
+            $errorMessage = $error->getMessage();
+            $sqlState = $error->errorInfo[0];
+            $errorCode = $error->errorInfo[1];
+
+            return response()->json([
+                'error' => 'Error al marcar la tarea como completada. Por favor, intentelo de nuevo.',
+                'errorMessage' => $errorMessage,
+                'sqlState' => $sqlState,
+                'errorCode' => $errorCode
+            ], 500);
+        }
+        catch (Exception $error)
+        {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
+                'details' => $error->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        // Find the task by its ID
+        try
+        {
+            $task = Task::findOrFail($id);
+
+            if ($task->user_id != Auth::id())
+            {
+                return response()->json([
+                    'error' => 'No tiene permisos para eliminar esta tarea.'
+                ], 403);
+            }
+
+            $task->delete();
+
+            return response()->json([
+                'message' => 'Tarea eliminada correctamente.'
+            ], 200);
+        }
+        // ModelNotFoundException is thrown when the task is not found
+        catch (ModelNotFoundException $error)
+        {
+            return response()->json([
+                'error' => 'Tarea no encontrada.'
+            ], 404);
+        }
+        // Catch the QueryException that could be thrown when trying to delete the task
+        catch (QueryException $error)
+        {
+            $errorMessage = $error->getMessage();
+            $sqlState = $error->errorInfo[0];
+            $errorCode = $error->errorInfo[1];
+
+            return response()->json([
+                'error' => 'Error al eliminar la tarea. Por favor, intentelo de nuevo.',
+                'errorMessage' => $errorMessage,
+                'sqlState' => $sqlState,
+                'errorCode' => $errorCode
+            ], 500);
+        }
+        // Catch any other exception that could be thrown
+        catch (Exception $error)
+        {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
+                'details' => $error->getMessage()
+            ], 500);
+        }
+    }
+}
