@@ -7,20 +7,36 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Exception;
 use App\Models\Task;
+use App\Services\TaskService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
+    protected $taskService;
+
+    public function __construct(TaskService $taskService)
+    {
+        $this->taskService = $taskService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $tasks = Task::where('user_id', Auth::id())->get();
-        // Return the tasks in JSON format
-        return response()->json($tasks);
-        //$id = Auth::id();
+        try
+        {
+            $tasks = $this->taskService->getAllTasksForUser();
+            return response()->json($tasks);
+        }
+        catch (Exception $error)
+        {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
+                'details' => $error->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -36,50 +52,24 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the request data
-        try
-        {
-            $validatedData = $request->validate([
-                'title' => 'required|string|max:100',
-                'description' => 'required|string',
-                'completed' => 'required|boolean'
-            ]);
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:100',
+            'description' => 'required|string',
+            'completed' => 'required|boolean'
+        ]);
 
-            Task::create([
-                'title' => $validatedData['title'],
-                'description' => $validatedData['description'],
-                'completed' => $validatedData['completed'],
-                // Get the user ID from the authenticated user
-                'user_id' => Auth::id()
-            ]);
+        $taskData = [
+            'title' => $validatedData['title'],
+            'description' => $validatedData['description'],
+            'completed' => $validatedData['completed']
+        ];
 
-            return response()->json([
-                'message' => 'Tarea guardada correctamente.'
-            ], 201);
-        }
-        // Catch the QueryException that could be thrown when trying to save the task
-        catch (QueryException $error){
-            $errorMessage = $error->getMessage();
-            // Get the SQL state
-            $sqlState = $error->errorInfo[0];
-            // Get the error code
-            $errorCode = $error->errorInfo[1];
+        $this->taskService->createTask($taskData);
 
-            return response()->json([
-                'error' => 'Error al guardar la tarea. Por favor, verifique los datos e intentelo de nuevo.',
-                'errorMessage' => $errorMessage,
-                'sqlState' => $sqlState,
-                'errorCode' => $errorCode
-            ], 500);
-        }
-        // Catch any other exception that could be thrown
-        catch (Exception $error)
-        {
-            return response()->json([
-                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
-                'details' => $error->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Tarea guardada correctamente.'
+        ], 201);
+        
     }
 
     /**
@@ -103,53 +93,23 @@ class TaskController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Validate the request data
-        try
-        {
-            $validatedData = $request->validate([
-                'title' => 'required|string|max:100',
-                'description' => 'required|string',
-                'completed' => 'required|boolean'
-            ]);
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:100',
+            'description' => 'required|string',
+            'completed' => 'required|boolean'
+        ]);
 
-            $task = Task::findOrFail($id);
+        $taskData = [
+            'title' => $validatedData['title'],
+            'description' => $validatedData['description'],
+            'completed' => $validatedData['completed']
+        ];
 
-            if ($task->user_id != Auth::id())
-            {
-                return response()->json([
-                    'error' => 'No tiene permisos para modificar esta tarea.'
-                ], 403);
-            }
+        $this->taskService->updateTask($id, $taskData);
 
-            $task->title = $validatedData['title'];
-            $task->description = $validatedData['description'];
-            $task->completed = $validatedData['completed'];
-            $task->save();
-
-            return response()->json([
-                'message' => 'Tarea actualizada correctamente.'
-            ], 200);
-        }
-        catch (QueryException $error)
-        {
-            $errorMessage = $error->getMessage();
-            $sqlState = $error->errorInfo[0];
-            $errorCode = $error->errorInfo[1];
-
-            return response()->json([
-                'error' => 'Error al actualizar la tarea. Por favor, verifique los datos e intentelo de nuevo.',
-                'errorMessage' => $errorMessage,
-                'sqlState' => $sqlState,
-                'errorCode' => $errorCode
-            ], 500);
-        }
-        catch (Exception $error)
-        {
-            return response()->json([
-                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
-                'details' => $error->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Tarea actualizada correctamente.'
+        ], 200);
     }
 
     /**
@@ -158,52 +118,11 @@ class TaskController extends Controller
      */
     public function markAsCompleted(string $id)
     {
-        try
-        {
-            $task = Task::findOrFail($id);
+        $this->taskService->markTaskAsCompleted($id);
 
-            if ($task->user_id != Auth::id())
-            {
-                return response()->json([
-                    'error' => 'No tiene permisos para modificar esta tarea.'
-                ], 403);
-            }
-
-            // Alternate between true and false
-            $task->completed = !$task->completed;
-            $task->save();
-
-            return response()->json([
-                'message' => 'Tarea marcada como completada.'
-            ], 200);
-        }
-        // ModelNotFoundException is thrown when the task is not found
-        catch (ModelNotFoundException $error)
-        {
-            return response()->json([
-                'error' => 'Tarea no encontrada.'
-            ], 404);
-        }
-        catch (QueryException $error)
-        {
-            $errorMessage = $error->getMessage();
-            $sqlState = $error->errorInfo[0];
-            $errorCode = $error->errorInfo[1];
-
-            return response()->json([
-                'error' => 'Error al marcar la tarea como completada. Por favor, intentelo de nuevo.',
-                'errorMessage' => $errorMessage,
-                'sqlState' => $sqlState,
-                'errorCode' => $errorCode
-            ], 500);
-        }
-        catch (Exception $error)
-        {
-            return response()->json([
-                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
-                'details' => $error->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Tarea marcada como completada.'
+        ], 200);
     }
 
     /**
@@ -211,52 +130,10 @@ class TaskController extends Controller
      */
     public function destroy(string $id)
     {
-        // Find the task by its ID
-        try
-        {
-            $task = Task::findOrFail($id);
+        $this->taskService->deleteTask($id);
 
-            if ($task->user_id != Auth::id())
-            {
-                return response()->json([
-                    'error' => 'No tiene permisos para eliminar esta tarea.'
-                ], 403);
-            }
-
-            $task->delete();
-
-            return response()->json([
-                'message' => 'Tarea eliminada correctamente.'
-            ], 200);
-        }
-        // ModelNotFoundException is thrown when the task is not found
-        catch (ModelNotFoundException $error)
-        {
-            return response()->json([
-                'error' => 'Tarea no encontrada.'
-            ], 404);
-        }
-        // Catch the QueryException that could be thrown when trying to delete the task
-        catch (QueryException $error)
-        {
-            $errorMessage = $error->getMessage();
-            $sqlState = $error->errorInfo[0];
-            $errorCode = $error->errorInfo[1];
-
-            return response()->json([
-                'error' => 'Error al eliminar la tarea. Por favor, intentelo de nuevo.',
-                'errorMessage' => $errorMessage,
-                'sqlState' => $sqlState,
-                'errorCode' => $errorCode
-            ], 500);
-        }
-        // Catch any other exception that could be thrown
-        catch (Exception $error)
-        {
-            return response()->json([
-                'error' => 'Ocurrió un error inesperado. Por favor, intentelo más tarde.',
-                'details' => $error->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Tarea eliminada correctamente.'
+        ], 200);
     }
 }
