@@ -1,25 +1,39 @@
-import React, { useContext } from 'react';
-import { TaskContext } from '../context/TaskContext';
-import TaskItem from './TaskItem';
+import axios from 'axios'
+import React, { useEffect, useState } from 'react'
 
-const TaskList = () => {
-  const { tasks } = useContext(TaskContext);
+export default function TaskList() {
+    const [tasks, setTasks] = useState([]);
 
-  if (!Array.isArray(tasks)) {
-    return <p>No tasks available.</p>;
-  }
+    useEffect(() => {
+        const fetchTasks = async () => {
+        try {
+            // Obtener el token del almacenamiento local
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://127.0.0.1:8000/api/tasks', {
+                headers: {
+                Authorization: `Bearer ${token}`,
+                },
+            });
+            setTasks(response.data);
+            console.log(response.data);
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+            setTasks([]); // Asegurarse de que tasks siempre sea un array
+        }
+        };
 
-  return (
-    <div className="list-group">
-      {tasks.length > 0 ? (
-        tasks.map(task => (
-          <TaskItem key={task.id} task={task} />
-        ))
-      ) : (
-        <p>No tasks available.</p>
-      )}
+        fetchTasks();
+    }, []);
+
+    return (
+        <div>
+        {tasks.map((task) => (
+            <div key={task.id}>
+                <h1>{task.title}</h1>
+                <h1>{task.description}</h1>
+                <h1>{task.completed}</h1>
+            </div>
+        ))}
     </div>
-  );
-};
-
-export default TaskList;
+    )
+}

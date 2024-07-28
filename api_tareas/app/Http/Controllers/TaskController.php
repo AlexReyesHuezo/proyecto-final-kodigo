@@ -20,6 +20,7 @@ class TaskController extends Controller
         $tasks = Task::where('user_id', Auth::id())->get();
         // Return the tasks in JSON format
         return response()->json($tasks);
+        //$id = Auth::id();
     }
 
     /**
