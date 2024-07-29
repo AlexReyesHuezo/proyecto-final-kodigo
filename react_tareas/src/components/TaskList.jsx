@@ -63,14 +63,14 @@ export default function TaskList() {
     return (
         <div>
           {tasks.map((task) => (
-            <div key={task.id} className="card mb-3">
+            <div key={task.id} className="card mb-3 bg-success-subtle">
               <div className="card-body">
                 <h5 className="card-title">{task.title}</h5>
                 <p className="card-text">{task.description}</p>
-                <button className="btn btn-secondary" onClick={() => handleToggleComplete(task.id, !task.completed)}>
+                <button className="btn btn-dark p-2 m-1" onClick={() => handleToggleComplete(task.id, !task.completed)}>
                   {task.completed ? 'Mark as Incomplete' : 'Mark as Completed'}
                 </button>
-                <button className="btn btn-danger" onClick={() => handleDelete(task.id)}>
+                <button className="btn btn-danger p-2 m-1" onClick={() => handleDelete(task.id)}>
                   Delete
                 </button>
               </div>

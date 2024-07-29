@@ -6,7 +6,7 @@ import '../App.css';
 const Home = () => {
   return (
     <div className="container mt-5">
-      <h1 className="text-center mb-4 text-primary">Task Manager</h1>
+      <h1 className="text-center mb-4 text-dark">Task Manager</h1>
       <div className="row justify-content-center">
         <div className="col-md-8">
           <div className="card shadow-lg">
