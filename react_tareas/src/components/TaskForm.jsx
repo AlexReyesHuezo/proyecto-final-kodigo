@@ -60,11 +60,11 @@ export default function TaskForm() {
 
     return (
       <div className="container mt-5">
-        <div className="card shadow-lg">
-          <div className="card-header bg-primary text-white text-center">
+        <div className="card shadow-lg bg-primary-subtle">
+          <div className="card-header bg-info text-white text-center">
             <h3>Add New Task</h3>
           </div>
-          <div className="card-body">
+          <div className="card-body bg-primary-subtle">
             <form onSubmit={handleSubmit} className="mb-3">
               <div className="mb-3">
                 <label htmlFor="title" className="form-label">Title</label>
@@ -101,12 +101,12 @@ export default function TaskForm() {
                 </label>
               </div>
               <div className="d-grid">
-                <button className="btn btn-primary" type="submit">
+                <button className="btn btn-success" type="submit">
                   Add Task
                 </button>
               </div>
             </form>
-            <button onClick={handleLogout} className="btn btn-secondary w-100 mt-3">
+            <button onClick={handleLogout} className="btn border border-danger w-100 mt-3 text-danger">
               Logout
             </button>
           </div>
