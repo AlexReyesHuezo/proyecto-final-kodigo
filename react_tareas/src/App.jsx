@@ -1,21 +1,28 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import TaskList from './components/TaskList';
-import TaskForm from './components/TaskForm';
-
+import Home from './pages/Home';
+import './App.css';
 
 const App = () => {
+  const isAuthenticated = localStorage.getItem('token');
+
+  const ProtectedRoute = ({ children }) => {
+    if (isAuthenticated) {
+      return children;
+    }
+    return <Navigate to="/" />;
+  };
+
   return (
-        <Router>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/home" element={<TaskList />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/taskregister" element={<TaskForm />} />
-          </Routes>
-        </Router>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      </Routes>
+    </Router>
   );
 };
 
