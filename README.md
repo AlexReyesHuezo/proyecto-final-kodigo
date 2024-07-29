@@ -94,7 +94,7 @@ XAMPP (incluye PHP y MySQL): Descargar del sitio oficial.
 
 ## Configuración del Proyecto React con Vite
 ### Crear el Proyecto
-Para crear un nuevo proyecto de React utilizando Vite, abre una terminal y ejecuta el siguiente comando:
+### Para crear un nuevo proyecto de React utilizando Vite, abre una terminal y ejecuta el siguiente comando:
 ```bash
 my-project: Este es el nombre del proyecto. Puedes cambiarlo por el nombre que desees.
 Instalar Dependencias
@@ -105,11 +105,11 @@ Ejecutar el Proyecto
 Inicia el servidor de desarrollo con:
 npm run dev
 ```
-Esto debería abrir la aplicación React en tu navegador en http://localhost:5173.
+### Esto debería abrir la aplicación React en tu navegador en http://localhost:5173.
 
 ## Configuración del Proyecto Laravel con Sanctum
-Crear el Proyecto Laravel
-Para crear un nuevo proyecto Laravel, ejecuta el siguiente comando:
+### Crear el Proyecto Laravel
+### Para crear un nuevo proyecto Laravel, ejecuta el siguiente comando:
 
 ```bash
 composer create-project --prefer-dist laravel/laravel nombre_proyecto
@@ -128,7 +128,7 @@ DB_USERNAME=usuario
 DB_PASSWORD=contraseña
 
 ### Instalar Laravel Sanctum
-Ejecuta el siguiente comando para instalar Laravel Sanctum:
+### Ejecuta el siguiente comando para instalar Laravel Sanctum:
 ```bash
 composer require laravel/sanctum
 Publica la configuración de Sanctum:
