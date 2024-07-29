@@ -82,4 +82,59 @@ flowchart TD
     E --> C
 ```
 
+#Configuración de React con Vite y Laravel con Sanctum
+Introducción
+Este documento describe el proceso para configurar un proyecto de frontend con React y Vite, y un backend con Laravel utilizando Sanctum para la autenticación. Se cubren los pasos de instalación, configuración y conexión entre ambas aplicaciones.
+
+##Requisitos Previos
+Antes de comenzar, asegúrate de tener instalados los siguientes programas:
+Node.js y npm: Descargar desde el sitio oficial
+Composer: Descargar desde el sitio oficial
+XAMPP (incluye PHP y MySQL): Descargar del sitio oficial.
+
+##Configuración del Proyecto React con Vite
+Crear el Proyecto
+Para crear un nuevo proyecto de React utilizando Vite, abre una terminal y ejecuta el siguiente comando:
+
+```bash
+my-project: Este es el nombre del proyecto. Puedes cambiarlo por el nombre que desees.
+Instalar Dependencias
+Accede al directorio del proyecto y ejecuta la instalación de dependencias:
+cd my-project
+npm install
+Ejecutar el Proyecto
+Inicia el servidor de desarrollo con:
+npm run dev
+```
+Esto debería abrir la aplicación React en tu navegador en http://localhost:5173.
+
+##Configuración del Proyecto Laravel con Sanctum
+Crear el Proyecto Laravel
+Para crear un nuevo proyecto Laravel, ejecuta el siguiente comando:
+
+```bash
+composer create-project --prefer-dist laravel/laravel nombre_proyecto
+nombre_proyecto: Este es el nombre del proyecto Laravel.
+Accede al directorio del proyecto:
+cd nombre_proyecto
+```
+
+Configura el archivo .env
+Abre el archivo .env en la raíz del proyecto y configura la conexión a la base de datos. Asegúrate de que la base de datos esté creada y que los detalles sean correctos.
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nombre_base_datos
+DB_USERNAME=usuario
+DB_PASSWORD=contraseña
+
+Instalar Laravel Sanctum
+Ejecuta el siguiente comando para instalar Laravel Sanctum:
+```bash
+composer require laravel/sanctum
+Publica la configuración de Sanctum:
+php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider"
+Ejecuta las migraciones para crear las tablas necesarias en la base de datos:
+php artisan migrate
+```
 
